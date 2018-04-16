@@ -70,7 +70,7 @@
 							player.unMute();
 						}
 						updatePrice();
-						setInterval(updatePrice, 15000);
+						setInterval(updatePrice, 10000);
 					},
 					onStateChange: (event) => {
 						if (event.data == YT.PlayerState.PLAYING) {
@@ -85,12 +85,12 @@
 
 			let lastPrice = 0.0;
 			function updatePrice() {
-				fetch("https://api.coinmarketcap.com/v1/ticker/bitcoin/")
+				fetch("https://blockchain.info/ticker?cors=true")
 				.then((res) => {
 					return res.json();
 				})
 				.then((json) => {
-					currentPrice = parseFloat(json[0].price_usd);
+					currentPrice = parseFloat(json["USD"].last);
 					if (currentPrice == lastPrice) {
 						return;
 					}
@@ -99,7 +99,7 @@
 					el.innerText = currentPrice;
 
 					const thresholdEl = document.getElementById("threshold");
-					const threshold = parseFloat(thresholdEl.getAttribute("value"));
+					const threshold = parseFloat(thresholdEl.value);
 					console.log(threshold);
 					if (threshold == Number.NaN) {
 						return;
