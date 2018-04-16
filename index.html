@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="https://www.youtube.com/iframe_api"></script>
+	<link href="https://fonts.googleapis.com/css?family=Patua+One" rel="stylesheet">
+	<style>
+		html {
+			font-family: 'Patua One', cursive;
+		}
+		body {
+			margin: 0;
+			padding: 0;
+			position: relative;
+			background: rgb(0,0,0);
+		}
+		h1 {
+			color: #fff;
+			font-size: 32px;
+		}
+		#container {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			height: 100vh;
+		}
+		#player {
+			width: 640px;
+			height: 360px;
+		}
+		#info {
+			margin-right: 32px;
+			margin-left: 32px;
+			max-width: 300px;
+		}
+		label {
+			color: #888;
+		}
+		#threshold {
+			font-family: 'Patua One', cursive;
+			width: 100%;
+			border-radius: 5px;
+			border-style: none;
+			padding: 8px;
+			font-size: 32px;
+		}
+	</style>
+</head>
+<body>
+	<div id="container">	
+		<div id="info">
+			<h1>1 BTC = <span id="price">0.00</span> USD</h1>
+			<label>Threshold</label><input id="threshold" type="number" placeholder="8000" value="8000" />
+		</div>
+		<div id="player" />
+	</div>
+	<script>
+		onYouTubeIframeAPIReady = () => {
+			console.log("wow")
+			console.log(YT)
+			const player = new YT.Player("player", {
+				width: "640",
+				height: "360",
+				videoId: "elTtS4_saMQ",
+				playerVars: { autoplay: 0, controls: 0 },
+				events: {
+					onReady: (event) => {
+						console.log("ready");
+						player.setVolume(100);
+						if (player.isMuted()) {
+							player.unMute();
+						}
+						updatePrice();
+						setInterval(updatePrice, 15000);
+					},
+					onStateChange: (event) => {
+						if (event.data == YT.PlayerState.PLAYING) {
+							setTimeout(() => {
+								player.pauseVideo();
+								player.seekTo(0);
+							}, 2000);
+						}
+					},
+				},
+			});
+
+			let lastPrice = 0.0;
+			function updatePrice() {
+				fetch("https://api.coinmarketcap.com/v1/ticker/bitcoin/")
+				.then((res) => {
+					return res.json();
+				})
+				.then((json) => {
+					currentPrice = parseFloat(json[0].price_usd);
+					if (currentPrice == lastPrice) {
+						return;
+					}
+
+					const el = document.getElementById("price");
+					el.innerText = currentPrice;
+
+					const thresholdEl = document.getElementById("threshold");
+					const threshold = parseFloat(thresholdEl.getAttribute("value"));
+					console.log(threshold);
+					if (threshold == Number.NaN) {
+						return;
+					}
+
+					const angry = Math.sign(currentPrice - threshold) !=
+						Math.sign(lastPrice - threshold);
+
+					lastPrice = currentPrice;
+
+					if (angry) {
+						console.log("arrrr");
+						player.seekTo(0);
+						player.playVideo();
+					}
+				})
+				.catch((err) => {
+					console.log(err);
+				})
+			};
+		};
+	</script>
+</body>
+</html>
